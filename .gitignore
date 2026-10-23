@@ -60,3 +60,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # test environment
 .env.test
+
+/src/generated/prisma
+
+# Prisma generated client
+/src/generated

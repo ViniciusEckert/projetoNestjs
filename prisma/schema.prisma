@@ -1,0 +1,70 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  conversations Conversation[]
+  messages      Message[]
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String   @unique
+  email     String?
+  createdAt DateTime @default(now())
+
+  conversations Conversation[]
+}
+
+model Conversation {
+  id         String             @id @default(uuid())
+  status     ConversationStatus @default(OPEN)
+  contactId  String
+  assigneeId String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  contact  Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignee User?     @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@index([contactId])
+  @@index([assigneeId])
+}
+
+model Message {
+  id             String           @id @default(uuid())
+  content        String
+  direction      MessageDirection
+  conversationId String
+  senderId       String?
+  createdAt      DateTime         @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?        @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+}
